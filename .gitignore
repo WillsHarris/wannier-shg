@@ -1,0 +1,12 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+examples/data/
+outputs/
+*_tb.dat
+*.npz
+CHGCAR
+WAVECAR
+POTCAR
+OUTCAR

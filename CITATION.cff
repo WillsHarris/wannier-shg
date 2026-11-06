@@ -1,0 +1,7 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the software and the method papers in the README."
+title: "Wannier SHG"
+type: software
+authors:
+  - given-names: "Wills"
+    family-names: "Harris"
