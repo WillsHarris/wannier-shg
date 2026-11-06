@@ -58,13 +58,13 @@ def at_k(tb, kf, energy_tol_eV=1e-6, with_generalized_derivative=False):
     ph=np.exp(2j*np.pi*(tb["R"]@kf))/tb["deg"]        # (nr,)
     Hk=np.einsum('r,rmn->mn', ph, tb["H"])
     Hk=(Hk+Hk.conj().T)/2
-    dHk=np.einsum('r,ra,rmn->amn', ph, 1j*tb["Rcart"], tb["H"])  # (3,nw,nw) dH/dk (eV*Ang)
+    dHk=np.einsum('r,ra,rmn->amn', ph, 1j*tb["Rcart"], tb["H"], optimize=True)  # (3,nw,nw) dH/dk (eV*Ang)
     Ak=np.einsum('r,rmna->amn', ph, tb["r"])                     # (3,nw,nw) Wannier Berry conn
     dHk=(dHk+dHk.swapaxes(1,2).conj())/2
     Ak=(Ak+Ak.swapaxes(1,2).conj())/2
     E,U=np.linalg.eigh(Hk)
-    Hbar=np.einsum('xi,axy,yj->aij', U.conj(), dHk, U)
-    Abar=np.einsum('xi,axy,yj->aij', U.conj(), Ak, U)
+    Hbar=np.einsum('xi,axy,yj->aij', U.conj(), dHk, U, optimize=True)
+    Abar=np.einsum('xi,axy,yj->aij', U.conj(), Ak, U, optimize=True)
     dE=E[:,None]-E[None,:]                       # w_nm = E_n - E_m
     D=np.zeros_like(Hbar)
     interband=np.abs(dE)>=energy_tol_eV
@@ -91,17 +91,19 @@ def at_k(tb, kf, energy_tol_eV=1e-6, with_generalized_derivative=False):
         1j*tb["Rcart"],
         1j*tb["Rcart"],
         tb["H"],
+        optimize=True,
     )
     dAwk=np.einsum(
         'r,rb,rmna->abmn',
         ph,
         1j*tb["Rcart"],
         tb["r"],
+        optimize=True,
     )
     d2Hk=(d2Hk+d2Hk.swapaxes(-1,-2).conj())/2
     dAwk=(dAwk+dAwk.swapaxes(-1,-2).conj())/2
-    d2Hbar=np.einsum('xi,abxy,yj->abij',U.conj(),d2Hk,U)
-    dAwbar=np.einsum('xi,abxy,yj->abij',U.conj(),dAwk,U)
+    d2Hbar=np.einsum('xi,abxy,yj->abij',U.conj(),d2Hk,U,optimize=True)
+    dAwbar=np.einsum('xi,abxy,yj->abij',U.conj(),dAwk,U,optimize=True)
 
     # D^a_nm=<u_n|partial_a u_m> in the Hamiltonian gauge.  It is already
     # available from the same off-diagonal combination used to construct r.

@@ -27,11 +27,17 @@ For a Wannier90 model, pass its `_tb.dat` path and the Fermi energy in eV. Use `
 
 The core is in `scripts/wann_tb.py` (Wannier interpolation), `scripts/shg.py` (Appendix C response), and `scripts/metallic_shg.py` (metallic response). The spectrum scripts handle mesh integration and output; `scripts/plot_threeband_spectrum.py` also plots an Appendix C spectrum.
 
+The Wannier basis rotations use optimized NumPy contractions. On a synthetic 56-band model, this reduced the interpolation time per k point from about 0.56 s to 0.005 s on one Mac with one BLAS thread; the calculated response agreed to floating point precision. Timings for a real model will depend on its size and hardware. Set `OPENBLAS_NUM_THREADS=1` for a reproducible single-thread benchmark.
+
 ## Scope and checks
 
 - The Appendix C calculation includes the three band and mixed two band terms, with a full zone sum and no time reversal reduction. Its occupations are step functions and its broadening is constant.
 - The metallic runner uses finite temperature occupations. Its `adiabatic` width choice matches the Appendix C complex frequency prescription in the insulating limit; `relaxation` allows separate intraband and interband widths. The scattering width is an input parameter.
 - The tests check direct band sums, generalized derivatives, gauge changes, unit conversion, the insulating limit, and the metallic response on a synthetic magnetic model. The tests do not establish convergence for a particular DFT calculation.
+
+Before using the metallic output quantitatively, compare a short run with the same inputs before and after the interpolation change, then check k-mesh, temperature, and intraband-width sensitivity for both magnetizations. An independent comparison of the complete multiband metallic response with the formulas of Hipolito *et al.* is still needed. Keep the `adiabatic` and `relaxation` width prescriptions distinct.
+
+For a trilayer versus monolayer comparison, use matched DFT and optical settings wherever possible. Document any necessary changes to the vacuum, band count, or Wannier basis. If the trilayer needs a different exchange-correlation or vdW treatment, recalculate the monolayer comparator with that treatment too.
 
 Wannier90 documents the [`_tb.dat` format](https://wannier90.readthedocs.io/en/stable/user_guide/wannier90/files/). For the metallic length gauge formulation and the physical nonlinear Drude terms, see [Hipolito *et al.*](https://doi.org/10.1103/PhysRevB.98.205420) and [Bhalla *et al.*](https://doi.org/10.1103/PhysRevB.107.165131).
 
