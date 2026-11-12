@@ -2,7 +2,7 @@
 
 Calculate the complex second harmonic susceptibility from a Wannier90 tight binding model. The input is a `seedname_tb.dat` file containing both the Hamiltonian and position matrix. The code evaluates the full Brillouin zone and can combine separate (+M) and (-M) models into magnetization even and odd responses.
 
-The established calculation implements the three band and mixed two band length gauge terms in Appendix C of [Xiao *et al.*](https://arxiv.org/abs/2211.04354v1). A separate metallic response runner includes Fermi occupation derivatives following [Bhalla *et al.*](https://doi.org/10.1103/PhysRevB.107.165131). That extension is still being checked against an independent full multiband formula; its output should be treated as a validation result.
+The established calculation follows the three band and mixed two band length gauge terms in Appendix C of [Xiao *et al.*](https://arxiv.org/abs/2211.04354v1), with a [documented sign correction](docs/magnetic_term_sign.md) to the final magnetic mixed term. A separate metallic response runner includes Fermi occupation derivatives following [Bhalla *et al.*](https://doi.org/10.1103/PhysRevB.107.165131). That extension is still being checked against an independent full multiband formula; its output should be treated as a validation result.
 
 ## Run it
 
@@ -31,7 +31,7 @@ The Wannier basis rotations use optimized NumPy contractions. On a synthetic 56-
 
 ## Scope and checks
 
-- The Appendix C calculation includes the three band and mixed two band terms, with a full zone sum and no time reversal reduction. Its occupations are step functions and its broadening is constant.
+- The Appendix C calculation includes the three band and mixed two band terms, with a full zone sum and no time reversal reduction. The final mixed term uses the sign explained in [the audit](docs/magnetic_term_sign.md). Its occupations are step functions and its broadening is constant. Spectra generated before this correction need to be recomputed.
 - The metallic runner uses finite temperature occupations. Its `adiabatic` width choice matches the Appendix C complex frequency prescription in the insulating limit; `relaxation` allows separate intraband and interband widths. The scattering width is an input parameter.
 - The tests check direct band sums, generalized derivatives, gauge changes, unit conversion, the insulating limit, and the metallic response on a synthetic magnetic model. The tests do not establish convergence for a particular DFT calculation.
 

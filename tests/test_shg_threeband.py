@@ -13,6 +13,7 @@ from shg import (  # noqa: E402
     bz_mean_to_bulk_chi_si,
     chi_k,
     chi_mixed_k,
+    chi_mixed_k_spectrum,
     chi_total_k,
     gauge_invariance_report,
     intrinsic_permutation_residual,
@@ -88,7 +89,7 @@ def gpaw_trs_reduced_threeband(E, r, f, photon_energy, eta):
 
 
 def direct_mixed(E, r, rd, v, f, photon_energy, eta, energy_tol=1e-6):
-    """Literal band-loop transcription of Xiao et al. Appendix-C Eq. (C3)."""
+    """Band-loop C3 formula with Chen main-text fifth-term sign."""
     chi = np.zeros((3, 3, 3), dtype=complex)
     z = photon_energy + 1j * eta
     velocity = np.real(np.diagonal(v, axis1=1, axis2=2))
@@ -123,7 +124,7 @@ def direct_mixed(E, r, rd, v, f, photon_energy, eta, energy_tol=1e-6):
                                 + rd[c, a, n, m] * r[b, m, n]
                             )
                             / (2 * w_mn * (w_mn - z))
-                            - delta[a]
+                            + delta[a]
                             * np.real(r[b, n, m] * r[c, m, n])
                             / (2 * w_mn**2 * (w_mn - z))
                         )
@@ -202,7 +203,7 @@ class ThreeBandKernelTest(unittest.TestCase):
             1e-12,
         )
 
-    def test_mixed_matches_appendix_c_band_sum(self):
+    def test_mixed_matches_corrected_band_sum(self):
         expected = direct_mixed(
             self.E,
             self.r,
@@ -214,6 +215,20 @@ class ThreeBandKernelTest(unittest.TestCase):
         )
         actual = chi_mixed_k(self.q, self.f, 0.73, 0.05)
         np.testing.assert_allclose(actual, expected, rtol=3e-13, atol=3e-13)
+
+    def test_mixed_batched_matches_one_frequency_path(self):
+        energies = np.array([0.31, 0.73, 1.17])
+        for include_final in (False, True):
+            actual = chi_mixed_k_spectrum(
+                self.q, self.f, energies, 0.05,
+                include_final_delta_term=include_final,
+            )
+            expected = np.array([
+                chi_mixed_k(self.q, self.f, photon, 0.05,
+                            include_final_delta_term=include_final)
+                for photon in energies
+            ])
+            np.testing.assert_allclose(actual, expected, rtol=3e-13, atol=3e-13)
 
     def test_mixed_phase_permutation_and_intrinsic_symmetry(self):
         reference = chi_mixed_k(self.q, self.f, 0.73, 0.05)
